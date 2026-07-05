@@ -132,6 +132,33 @@ are UX only. Requirements:
 7. Cross-tenant isolation must be covered by automated tests that fail
    the build if a leak appears.
 
+## 7b. Payment architecture (M3)
+
+Two money flows, both on Stripe; **webhooks are the only writer of
+billing and membership state** (the UI polls, it never grants):
+
+1. **Owner → HouseKey**: Stripe Billing subscription on the platform
+   account. One launch plan: **$99/month Suite plan**, 14-day trial,
+   card collected at Checkout. Customer Portal for management. Billing
+   states: `trialing → active → past_due → canceled`, driven by
+   subscription webhooks.
+2. **Member → Owner**: Stripe Checkout subscription with **destination
+   charges** to the owner's **Connect Express** account and a **10%
+   platform application fee**. A paid suite cannot accept member
+   payments until `connect_ready = true` (set only by `account.updated`
+   webhooks). On `checkout.session.completed` the member becomes
+   `tier=paid, status=active`; on `customer.subscription.deleted` they
+   revert to `tier=free, status=canceled` (access persists to period end
+   because Stripe keeps the subscription active until then).
+
+Security requirements: webhook signatures verified; processed event ids
+stored (duplicate deliveries are no-ops); transactions deduplicated on
+`(kind, stripe_ref)`; billing/tier/status/stripe columns are not
+writable by any user role — only the service role via dedicated
+database functions. Transactions are recorded for member payments, SaaS
+payments, failures, and refunds; owners see month revenue, active paid
+members, and recent transactions.
+
 ## 8. Roadmap (milestones)
 
 | Milestone | Scope |

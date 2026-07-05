@@ -148,18 +148,19 @@ begin
 end;
 $$;
 
--- A free member cannot upgrade their own tier (update policy is owner-only)
+-- A free member cannot upgrade their own tier. Since M3 the tier column is
+-- not UPDATE-grantable to authenticated at all (webhooks are the only
+-- writer), so this fails with insufficient_privilege rather than 0 rows.
 do $$
-declare
-  n integer;
 begin
-  update public.memberships m set tier = 'paid'
-  from public.suites s
-  where s.id = m.suite_id and s.slug = 'suite-a' and m.user_id = auth.uid();
-  get diagnostics n = row_count;
-  if n <> 0 then
-    raise exception 'FAIL: LEAK — member upgraded their own tier';
-  end if;
+  begin
+    update public.memberships m set tier = 'paid'
+    from public.suites s
+    where s.id = m.suite_id and s.slug = 'suite-a' and m.user_id = auth.uid();
+    raise exception 'FAIL: LEAK — member updated the tier column';
+  exception
+    when insufficient_privilege then null;
+  end;
 end;
 $$;
 
@@ -216,14 +217,34 @@ begin
 end;
 $$;
 
--- owner A upgrades C to paid
+-- Since M3, not even the owner can set tiers by hand — the webhook/server
+-- path (service_role RPC) is the only writer of paid membership state.
 select set_config('request.jwt.claims',
   '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', false);
 
-update public.memberships m set tier = 'paid'
-from public.suites s
-where s.id = m.suite_id and s.slug = 'suite-a'
-  and m.user_id = '33333333-3333-3333-3333-333333333333';
+do $$
+begin
+  begin
+    update public.memberships m set tier = 'paid'
+    from public.suites s
+    where s.id = m.suite_id and s.slug = 'suite-a'
+      and m.user_id = '33333333-3333-3333-3333-333333333333';
+    raise exception 'FAIL: LEAK — owner updated the tier column directly';
+  exception
+    when insufficient_privilege then null;
+  end;
+end;
+$$;
+
+-- C is upgraded to paid via the webhook path (service_role)
+reset role;
+set role service_role;
+select public.apply_member_subscription(
+  (select id from public.suites where slug = 'suite-a'),
+  '33333333-3333-3333-3333-333333333333',
+  'paid', 'active', 'sub_test_c', 'cus_test_c', now() + interval '30 days', false);
+reset role;
+set role authenticated;
 
 -- paid member C reads free-member AND paid-member bodies
 select set_config('request.jwt.claims',

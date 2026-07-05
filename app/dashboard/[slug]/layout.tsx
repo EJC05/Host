@@ -61,6 +61,22 @@ export default async function DashboardLayout({
           <DashboardNav slug={suite.slug} />
         </div>
       </header>
+      {(suite.billing_status === "past_due" ||
+        suite.billing_status === "canceled") && (
+        <div className="border-b border-destructive/30 bg-destructive/10">
+          <div className="mx-auto max-w-5xl px-4 py-2 text-sm">
+            {suite.billing_status === "past_due"
+              ? "⚠️ Your HouseKey plan payment failed. "
+              : "⚠️ Your HouseKey plan is canceled. "}
+            <Link
+              href={`/dashboard/${suite.slug}/billing`}
+              className="font-medium underline underline-offset-4"
+            >
+              Fix billing
+            </Link>
+          </div>
+        </div>
+      )}
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
     </div>
   );

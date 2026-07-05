@@ -4,26 +4,30 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { joinSuite } from "@/app/s/[slug]/actions";
+import { joinSuite, startMemberCheckout } from "@/app/s/[slug]/actions";
 
 interface JoinButtonProps {
   suiteId: string;
   slug: string;
   access: "free" | "paid";
+  connectReady: boolean;
   primaryColor: string;
   loggedIn: boolean;
   isOwner: boolean;
   isMember: boolean;
+  isPaidMember: boolean;
 }
 
 export function JoinButton({
   suiteId,
   slug,
   access,
+  connectReady,
   primaryColor,
   loggedIn,
   isOwner,
   isMember,
+  isPaidMember,
 }: JoinButtonProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -37,7 +41,25 @@ export function JoinButton({
     );
   }
 
-  if (isMember) {
+  if (isPaidMember) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" disabled>
+          ✓ Paid member
+        </Button>
+        <Link
+          href="/account/billing"
+          className="text-xs text-muted-foreground underline underline-offset-4"
+        >
+          Manage
+        </Link>
+      </div>
+    );
+  }
+
+  // Free member of a paid suite can still upgrade below; free suite member
+  // is simply done.
+  if (isMember && access === "free") {
     return (
       <Button variant="outline" size="sm" disabled>
         ✓ Member
@@ -54,11 +76,32 @@ export function JoinButton({
   }
 
   if (access === "paid") {
-    // Checkout arrives with the payments milestone.
+    // A paid suite cannot accept member payments until payouts are ready.
+    if (!connectReady) {
+      return (
+        <Button size="sm" disabled>
+          Membership coming soon
+        </Button>
+      );
+    }
     return (
-      <Button size="sm" disabled>
-        Membership coming soon
-      </Button>
+      <div className="flex items-center gap-2">
+        {error && <span className="text-xs text-destructive">{error}</span>}
+        <Button
+          size="sm"
+          disabled={pending}
+          style={{ backgroundColor: primaryColor }}
+          onClick={() =>
+            startTransition(async () => {
+              // Redirects to Stripe Checkout; only returns on failure.
+              const result = await startMemberCheckout(slug);
+              if (!result.ok) setError(result.error);
+            })
+          }
+        >
+          {pending ? "Redirecting…" : "Subscribe"}
+        </Button>
+      </div>
     );
   }
 

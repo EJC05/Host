@@ -15,6 +15,11 @@ export function DashboardNav({ slug }: { slug: string }) {
       label: "Content",
       active: pathname.startsWith(`${base}/content`),
     },
+    {
+      href: `${base}/billing`,
+      label: "Billing",
+      active: pathname.startsWith(`${base}/billing`),
+    },
   ];
 
   return (

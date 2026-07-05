@@ -75,5 +75,6 @@ echo "==> running RLS tests"
 # posts-rls.test.sql depends on state created by rls.test.sql — keep order.
 psql -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/rls.test.sql" "$DBNAME"
 psql -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/posts-rls.test.sql" "$DBNAME"
+psql -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/money-rls.test.sql" "$DBNAME"
 
 echo "==> OK"

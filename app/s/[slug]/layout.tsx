@@ -89,10 +89,15 @@ export default async function SuiteLayout({
                   suiteId={suite.id}
                   slug={suite.slug}
                   access={suite.access}
+                  connectReady={suite.connect_ready}
                   primaryColor={primary}
                   loggedIn={viewer.user !== null}
                   isOwner={viewer.isOwner}
                   isMember={viewer.membership !== null}
+                  isPaidMember={
+                    viewer.membership?.tier === "paid" &&
+                    viewer.membership?.status !== "canceled"
+                  }
                 />
               </div>
             </div>

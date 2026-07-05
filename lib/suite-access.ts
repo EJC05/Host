@@ -4,7 +4,7 @@ import type { Membership, Post, Suite } from "@/lib/types";
 export interface ViewerContext {
   user: User | null;
   isOwner: boolean;
-  membership: Pick<Membership, "role" | "tier"> | null;
+  membership: Pick<Membership, "role" | "tier" | "status"> | null;
 }
 
 export async function getViewerContext(
@@ -21,10 +21,10 @@ export async function getViewerContext(
 
   const { data: membership } = await supabase
     .from("memberships")
-    .select("role, tier")
+    .select("role, tier, status")
     .eq("suite_id", suite.id)
     .eq("user_id", user.id)
-    .maybeSingle<Pick<Membership, "role" | "tier">>();
+    .maybeSingle<Pick<Membership, "role" | "tier" | "status">>();
 
   return { user, isOwner: suite.owner_id === user.id, membership };
 }
@@ -41,7 +41,11 @@ export function viewerCanReadBody(viewer: ViewerContext, post: Post): boolean {
     case "free_members":
       return viewer.membership !== null;
     case "paid_members":
-      return viewer.membership?.tier === "paid";
+      return (
+        viewer.membership?.tier === "paid" &&
+        (viewer.membership.status === "active" ||
+          viewer.membership.status === "past_due")
+      );
   }
 }
 

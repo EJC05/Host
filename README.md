@@ -3,12 +3,18 @@
 Multi-tenant SaaS platform: creators, communities, and businesses launch
 their own branded member suite at `/s/<slug>`.
 
-**Status: Milestone 2 — Public Suite & Content.** See
+**Status: Milestone 3 — Membership & Money.** See
 [`docs/housekey-prd.md`](docs/housekey-prd.md) for the product spec, and
-[`docs/milestone-1.md`](docs/milestone-1.md) /
-[`docs/milestone-2.md`](docs/milestone-2.md) for the milestone plans.
-Payments (Stripe), room UI, comments, analytics, and custom domains are
-intentionally not built yet.
+`docs/milestone-{1,2,3}.md` for the milestone plans. Room UI, comments,
+analytics, tokens, and custom domains are intentionally not built yet.
+
+Stripe setup (test mode): create a $99/month price for the Suite plan
+and set `STRIPE_SUITE_PLAN_PRICE_ID`; add webhook endpoints
+`/api/webhooks/stripe` (platform events: checkout, subscriptions,
+invoices, refunds) and `/api/webhooks/stripe-connect` (account.updated,
+"listen to events on connected accounts"); set both signing secrets and
+`SUPABASE_SERVICE_ROLE_KEY` — see `.env.example`. For local testing:
+`stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
 
 ## Stack
 

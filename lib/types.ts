@@ -34,8 +34,36 @@ export interface Suite {
   cover_image_url: string | null;
   accent_color: string | null;
   theme: "light" | "dark";
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  billing_status: BillingStatus;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  stripe_connect_id: string | null;
+  connect_ready: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export type BillingStatus =
+  | "none"
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled";
+
+export type MembershipStatus = "active" | "past_due" | "canceled";
+
+export interface Transaction {
+  id: string;
+  suite_id: string;
+  user_id: string | null;
+  kind: "member_payment" | "saas_payment" | "payment_failed" | "refund";
+  amount_cents: number;
+  currency: string;
+  application_fee_cents: number | null;
+  stripe_ref: string | null;
+  created_at: string;
 }
 
 export interface PostMedia {
@@ -91,6 +119,9 @@ export interface Plan {
   currency: string;
   billing_interval: "month" | "year";
   is_active: boolean;
+  stripe_product_id: string | null;
+  stripe_price_id: string | null;
+  stripe_price_cents: number | null;
   created_at: string;
 }
 
@@ -100,6 +131,11 @@ export interface Membership {
   user_id: string;
   role: MemberRole;
   tier: MembershipTier;
+  status: MembershipStatus;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
   created_at: string;
 }
 
