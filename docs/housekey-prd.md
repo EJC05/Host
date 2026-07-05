@@ -96,6 +96,18 @@ Postgres (Supabase), schema `public`:
   added in Milestone 2, not before.
 - `rooms` — `suite_id`, `name`, `description`, `position`.
 - `reserved_slugs` — platform-reserved slugs; enforced by DB trigger.
+- `posts` (M2) — `suite_id`, `author_id`, `title`, `excerpt`, `media`
+  (JSON: `image_url`, `video_url`), `visibility`
+  (`public | free_members | paid_members`), `status`
+  (`draft | published`), `pinned`, `published_at`. Teaser-safe fields
+  only — the body lives in `post_bodies`.
+- `post_bodies` (M2) — `post_id` PK → posts, `body`. Split from `posts`
+  so RLS can gate the body independently of the teaser: locked bodies
+  must never be sent to the client.
+- `memberships.tier` (M2) — `free | paid`. Members may only self-join as
+  `free`; `paid` is granted by the payments flow (M3) or the owner.
+- Suite theming (M2) — `suites.tagline`, `about`, `cover_image_url`,
+  `accent_color`, `theme` (`light | dark`).
 
 Suite creation is a single SECURITY DEFINER function
 (`create_suite_with_defaults`) that validates, creates the suite, the
@@ -124,11 +136,11 @@ are UX only. Requirements:
 
 | Milestone | Scope |
 | --- | --- |
-| **M1 — Skeleton & tenancy** (this repo's current state) | Project setup, schema, RLS, auth, onboarding wizard, template seeding, reserved slugs, public suite page, owner dashboard, RLS tests. |
-| **M2 — Payments** | Stripe Connect, paid membership checkout, plan management, member self-join for paid suites. |
-| **M3 — Community** | Rooms UI, post composer, member experience inside the suite. |
-| **M4 — Growth** | Analytics for owners, invites. |
-| **M5 — Platform** | API tokens/keys, custom domains. |
+| **M1 — Skeleton & tenancy** | Project setup, schema, RLS, auth, onboarding wizard, template seeding, reserved slugs, public suite page, owner dashboard, RLS tests. |
+| **M2 — Public Suite & Content** | Themed public suite (cover, logo, tagline, tab nav, light/dark, brand colors), post composer (visibility, drafts, pin, media), public feed + post detail with locked teaser cards, free self-join, content RLS tests. |
+| **M3 — Payments** | Stripe Connect, paid membership checkout, plan management, paid-tier upgrades. |
+| **M4 — Community** | Rooms UI, comments, member experience inside the suite. |
+| **M5 — Growth & platform** | Analytics for owners, invites, API tokens/keys, custom domains. |
 | Later | Native apps, yearly billing, multiple plans per suite, additional roles (admin/moderator). |
 
 Out of scope until their milestone: payments/Stripe, community-room UI,

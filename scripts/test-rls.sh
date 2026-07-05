@@ -60,12 +60,20 @@ export PGHOST=127.0.0.1 PGPORT="$PORT" PGUSER=postgres
 
 psql -v ON_ERROR_STOP=1 -q -c "create database $DBNAME" postgres
 
-echo "==> applying supabase shim + migration"
+echo "==> applying supabase shim + migrations"
 psql -v ON_ERROR_STOP=1 -q -f "$ROOT/scripts/supabase-shim.sql" "$DBNAME"
-# 0002_storage_branding.sql is Supabase-only (storage schema) and is skipped.
-psql -v ON_ERROR_STOP=1 -q -f "$ROOT/supabase/migrations/0001_init.sql" "$DBNAME"
+# *storage* migrations are Supabase-only (storage schema) and are skipped.
+for f in "$ROOT"/supabase/migrations/*.sql; do
+  case "$(basename "$f")" in
+    *storage*) continue ;;
+  esac
+  echo "    $(basename "$f")"
+  psql -v ON_ERROR_STOP=1 -q -f "$f" "$DBNAME"
+done
 
 echo "==> running RLS tests"
+# posts-rls.test.sql depends on state created by rls.test.sql — keep order.
 psql -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/rls.test.sql" "$DBNAME"
+psql -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/posts-rls.test.sql" "$DBNAME"
 
 echo "==> OK"

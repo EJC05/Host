@@ -8,13 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PostCard } from "@/components/suite/post-card";
+import { getViewerContext, viewerCanReadBody } from "@/lib/suite-access";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice, suiteTypeLabel } from "@/lib/validation";
-import type { Plan, Suite, SuiteTab } from "@/lib/types";
+import { formatPrice } from "@/lib/validation";
+import type { Plan, Post, Suite } from "@/lib/types";
 
-// Public suite page — works for anonymous visitors. RLS only exposes
-// published suites, their public tabs, and their pricing here.
-export default async function PublicSuitePage({
+// Suite home: pinned + latest posts and the membership card.
+export default async function SuiteHomePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -26,21 +27,21 @@ export default async function PublicSuitePage({
     .from("suites")
     .select("*")
     .eq("slug", slug)
-    .eq("published", true)
     .maybeSingle<Suite>();
+  if (!suite) notFound();
 
-  if (!suite) {
-    notFound();
-  }
+  const viewer = await getViewerContext(supabase, suite);
 
-  const [{ data: tabs }, { data: plans }] = await Promise.all([
+  const [{ data: posts }, { data: plans }] = await Promise.all([
     supabase
-      .from("suite_tabs")
+      .from("posts")
       .select("*")
       .eq("suite_id", suite.id)
-      .eq("is_public", true)
-      .order("position")
-      .returns<SuiteTab[]>(),
+      .eq("status", "published")
+      .order("pinned", { ascending: false })
+      .order("published_at", { ascending: false })
+      .limit(3)
+      .returns<Post[]>(),
     supabase
       .from("plans")
       .select("*")
@@ -50,48 +51,38 @@ export default async function PublicSuitePage({
   ]);
 
   const plan = plans?.[0];
-  const accent = suite.brand_color ?? "#171717";
 
   return (
-    <div className="min-h-screen">
-      <div className="h-2" style={{ backgroundColor: accent }} />
-      <header className="border-b">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            {suite.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={suite.logo_url}
-                alt=""
-                className="h-9 w-9 rounded-md border object-cover"
-              />
-            ) : (
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-semibold text-white"
-                style={{ backgroundColor: accent }}
-              >
-                {suite.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span className="font-semibold">{suite.name}</span>
-          </div>
-          <nav className="hidden gap-4 text-sm text-muted-foreground sm:flex">
-            {tabs?.map((tab) => (
-              <span key={tab.id}>{tab.title}</span>
-            ))}
-          </nav>
+    <div className="grid gap-8 md:grid-cols-[1fr_280px]">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold">Latest posts</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/s/${suite.slug}/feed`}>View all →</Link>
+          </Button>
         </div>
-      </header>
+        {posts && posts.length > 0 ? (
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                slug={suite.slug}
+                locked={!viewerCanReadBody(viewer, post)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center text-sm text-muted-foreground">
+              Nothing posted yet — check back soon.
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-      <main className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Welcome to {suite.name}
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          A {suiteTypeLabel(suite.suite_type)} suite on HouseKey.
-        </p>
-
-        <Card className="mx-auto mt-10 max-w-sm">
+      <aside className="space-y-4">
+        <Card>
           <CardHeader>
             <CardTitle>
               {suite.access === "paid" && plan
@@ -100,25 +91,30 @@ export default async function PublicSuitePage({
             </CardTitle>
             <CardDescription>
               {suite.access === "paid"
-                ? "Membership unlocks the member rooms."
-                : "Join and get access to the member rooms."}
+                ? "Membership unlocks members-only posts and rooms."
+                : "Join to unlock members-only posts and rooms."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Joining & payments arrive in a later milestone. */}
-            <Button className="w-full" disabled>
-              Joining opens soon
-            </Button>
-          </CardContent>
         </Card>
-
-        <p className="mt-16 text-xs text-muted-foreground">
-          Powered by{" "}
-          <Link href="/" className="underline underline-offset-4">
-            HouseKey
-          </Link>
-        </p>
-      </main>
+        {suite.about && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">About</CardTitle>
+              <CardDescription className="line-clamp-4 whitespace-pre-wrap">
+                {suite.about}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link
+                href={`/s/${suite.slug}/about`}
+                className="text-sm underline underline-offset-4"
+              >
+                Read more
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+      </aside>
     </div>
   );
 }

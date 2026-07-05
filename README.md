@@ -3,9 +3,11 @@
 Multi-tenant SaaS platform: creators, communities, and businesses launch
 their own branded member suite at `/s/<slug>`.
 
-**Status: Milestone 1 — Skeleton & Tenancy.** See
-[`docs/milestone-1.md`](docs/milestone-1.md) for the plan, schema, and RLS
-design. Payments, room UI, posts, analytics, and custom domains are
+**Status: Milestone 2 — Public Suite & Content.** See
+[`docs/housekey-prd.md`](docs/housekey-prd.md) for the product spec, and
+[`docs/milestone-1.md`](docs/milestone-1.md) /
+[`docs/milestone-2.md`](docs/milestone-2.md) for the milestone plans.
+Payments (Stripe), room UI, comments, analytics, and custom domains are
 intentionally not built yet.
 
 ## Stack

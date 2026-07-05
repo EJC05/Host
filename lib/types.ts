@@ -15,6 +15,10 @@ export type TabKind =
   | "contact"
   | "custom";
 
+export type PostVisibility = "public" | "free_members" | "paid_members";
+export type PostStatus = "draft" | "published";
+export type MembershipTier = "free" | "paid";
+
 export interface Suite {
   id: string;
   owner_id: string;
@@ -25,7 +29,38 @@ export interface Suite {
   logo_url: string | null;
   brand_color: string | null;
   published: boolean;
+  tagline: string | null;
+  about: string | null;
+  cover_image_url: string | null;
+  accent_color: string | null;
+  theme: "light" | "dark";
   created_at: string;
+  updated_at: string;
+}
+
+export interface PostMedia {
+  image_url?: string;
+  video_url?: string;
+}
+
+export interface Post {
+  id: string;
+  suite_id: string;
+  author_id: string;
+  title: string;
+  excerpt: string | null;
+  media: PostMedia;
+  visibility: PostVisibility;
+  status: PostStatus;
+  pinned: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostBody {
+  post_id: string;
+  body: string;
   updated_at: string;
 }
 
@@ -64,6 +99,7 @@ export interface Membership {
   suite_id: string;
   user_id: string;
   role: MemberRole;
+  tier: MembershipTier;
   created_at: string;
 }
 
