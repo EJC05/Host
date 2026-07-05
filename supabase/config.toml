@@ -1,0 +1,3 @@
+# Supabase CLI configuration. Defaults are used for everything not listed;
+# run `supabase start` for a full local stack.
+project_id = "housekey"
