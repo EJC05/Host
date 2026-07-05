@@ -1,4 +1,9 @@
-export type SuiteType = "creator" | "community" | "business";
+export type SuiteType =
+  | "real_estate_agent"
+  | "creator_influencer"
+  | "coach_consultant"
+  | "business_brand"
+  | "custom";
 export type SuiteAccess = "free" | "paid";
 export type MemberRole = "owner" | "member";
 export type TabKind =

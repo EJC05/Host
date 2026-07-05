@@ -13,7 +13,13 @@ create extension if not exists pgcrypto;
 -- Enums
 -- ---------------------------------------------------------------------------
 
-create type public.suite_type as enum ('creator', 'community', 'business');
+create type public.suite_type as enum (
+  'real_estate_agent',
+  'creator_influencer',
+  'coach_consultant',
+  'business_brand',
+  'custom'
+);
 create type public.suite_access as enum ('free', 'paid');
 create type public.member_role as enum ('owner', 'member');
 create type public.tab_kind as enum ('home', 'rooms', 'about', 'links', 'members', 'contact', 'custom');
@@ -96,7 +102,7 @@ create table public.suites (
   slug text not null unique
     check (slug = lower(slug) and slug ~ '^[a-z0-9][a-z0-9-]{1,46}[a-z0-9]$'),
   name text not null check (char_length(name) between 1 and 80),
-  suite_type public.suite_type not null default 'creator',
+  suite_type public.suite_type not null default 'custom',
   access public.suite_access not null default 'free',
   logo_url text,
   brand_color text check (brand_color is null or brand_color ~ '^#[0-9a-fA-F]{6}$'),
@@ -442,7 +448,19 @@ begin
     values (v_suite.id, 'Free', 0);
   end if;
 
-  if p_suite_type = 'creator' then
+  -- Template seeds — must stay in sync with docs/housekey-prd.md §4.
+  if p_suite_type = 'real_estate_agent' then
+    insert into suite_tabs (suite_id, title, kind, position, is_public) values
+      (v_suite.id, 'Home',     'home',    0, true),
+      (v_suite.id, 'Listings', 'custom',  1, true),
+      (v_suite.id, 'Rooms',    'rooms',   2, false),
+      (v_suite.id, 'About',    'about',   3, true),
+      (v_suite.id, 'Contact',  'contact', 4, true);
+    insert into rooms (suite_id, name, description, position) values
+      (v_suite.id, 'General', 'Open discussion for members.', 0),
+      (v_suite.id, 'Market Updates', 'Local market news and analysis.', 1),
+      (v_suite.id, 'Buyer Q&A', 'Questions from buyers and sellers.', 2);
+  elsif p_suite_type = 'creator_influencer' then
     insert into suite_tabs (suite_id, title, kind, position, is_public) values
       (v_suite.id, 'Home',  'home',  0, true),
       (v_suite.id, 'Rooms', 'rooms', 1, false),
@@ -451,17 +469,17 @@ begin
     insert into rooms (suite_id, name, description, position) values
       (v_suite.id, 'General', 'Open discussion for members.', 0),
       (v_suite.id, 'Announcements', 'Updates from the owner.', 1);
-  elsif p_suite_type = 'community' then
+  elsif p_suite_type = 'coach_consultant' then
     insert into suite_tabs (suite_id, title, kind, position, is_public) values
       (v_suite.id, 'Home',    'home',    0, true),
       (v_suite.id, 'Rooms',   'rooms',   1, false),
-      (v_suite.id, 'Members', 'members', 2, false),
-      (v_suite.id, 'About',   'about',   3, true);
+      (v_suite.id, 'About',   'about',   2, true),
+      (v_suite.id, 'Contact', 'contact', 3, true);
     insert into rooms (suite_id, name, description, position) values
       (v_suite.id, 'General', 'Open discussion for members.', 0),
-      (v_suite.id, 'Introductions', 'Say hello and introduce yourself.', 1),
-      (v_suite.id, 'Events', 'Upcoming events and meetups.', 2);
-  else
+      (v_suite.id, 'Q&A', 'Ask your questions here.', 1),
+      (v_suite.id, 'Wins', 'Share your progress and wins.', 2);
+  elsif p_suite_type = 'business_brand' then
     insert into suite_tabs (suite_id, title, kind, position, is_public) values
       (v_suite.id, 'Home',    'home',    0, true),
       (v_suite.id, 'Rooms',   'rooms',   1, false),
@@ -470,6 +488,13 @@ begin
     insert into rooms (suite_id, name, description, position) values
       (v_suite.id, 'General', 'Open discussion for members.', 0),
       (v_suite.id, 'Support', 'Questions and support.', 1);
+  else -- custom
+    insert into suite_tabs (suite_id, title, kind, position, is_public) values
+      (v_suite.id, 'Home',  'home',  0, true),
+      (v_suite.id, 'Rooms', 'rooms', 1, false),
+      (v_suite.id, 'About', 'about', 2, true);
+    insert into rooms (suite_id, name, description, position) values
+      (v_suite.id, 'General', 'Open discussion for members.', 0);
   end if;
 
   return v_suite;

@@ -34,7 +34,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
   const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle");
 
   // Step 2 — suite type
-  const [suiteType, setSuiteType] = useState<SuiteType>("creator");
+  const [suiteType, setSuiteType] = useState<SuiteType>("creator_influencer");
 
   // Step 3 — access & price
   const [access, setAccess] = useState<SuiteAccess>("free");
@@ -352,7 +352,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
             />
             <p className="text-xs text-muted-foreground">
               Generating your suite seeds its tabs and member rooms from the{" "}
-              {suiteType} template.
+              {SUITE_TYPES.find((t) => t.value === suiteType)?.label} template.
             </p>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>

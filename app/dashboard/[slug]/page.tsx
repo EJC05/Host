@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { signOut } from "@/app/auth/actions";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/validation";
+import { formatPrice, suiteTypeLabel } from "@/lib/validation";
 import type { Plan, Room, Suite, SuiteTab } from "@/lib/types";
 
 export default async function SuiteDashboard({
@@ -117,7 +117,8 @@ export default async function SuiteDashboard({
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{suite.name}</h1>
             <p className="text-sm text-muted-foreground">
-              housekey.app/s/{suite.slug} · {suite.suite_type} suite
+              housekey.app/s/{suite.slug} · {suiteTypeLabel(suite.suite_type)}{" "}
+              suite
             </p>
           </div>
         </div>

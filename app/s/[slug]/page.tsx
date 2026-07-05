@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/validation";
+import { formatPrice, suiteTypeLabel } from "@/lib/validation";
 import type { Plan, Suite, SuiteTab } from "@/lib/types";
 
 // Public suite page — works for anonymous visitors. RLS only exposes
@@ -88,7 +88,7 @@ export default async function PublicSuitePage({
           Welcome to {suite.name}
         </h1>
         <p className="mt-3 text-muted-foreground">
-          A {suite.suite_type} suite on HouseKey.
+          A {suiteTypeLabel(suite.suite_type)} suite on HouseKey.
         </p>
 
         <Card className="mx-auto mt-10 max-w-sm">

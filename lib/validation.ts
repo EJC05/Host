@@ -6,27 +6,44 @@ export const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,46}[a-z0-9]$/;
 export const MIN_PRICE_CENTS = 100; // $1.00
 export const MAX_PRICE_CENTS = 100_000_000;
 
+// Launch templates — must stay in sync with docs/housekey-prd.md §4 and the
+// suite_type enum + seeds in supabase/migrations/0001_init.sql.
 export const SUITE_TYPES: {
   value: SuiteType;
   label: string;
   description: string;
 }[] = [
   {
-    value: "creator",
-    label: "Creator",
+    value: "real_estate_agent",
+    label: "Real Estate Agent",
+    description:
+      "A client hub with listings, market updates, and buyer Q&A.",
+  },
+  {
+    value: "creator_influencer",
+    label: "Creator / Influencer",
     description: "Share your work, links, and updates with your audience.",
   },
   {
-    value: "community",
-    label: "Community",
-    description: "A member-first space with rooms, intros, and events.",
+    value: "coach_consultant",
+    label: "Coach / Consultant",
+    description: "A client space for programs, Q&A, and celebrating wins.",
   },
   {
-    value: "business",
-    label: "Business",
+    value: "business_brand",
+    label: "Business / Brand",
     description: "A home base for your services, support, and contact info.",
   },
+  {
+    value: "custom",
+    label: "Custom",
+    description: "Start minimal and shape the suite yourself.",
+  },
 ];
+
+export function suiteTypeLabel(value: string): string {
+  return SUITE_TYPES.find((t) => t.value === value)?.label ?? value;
+}
 
 export function isSuiteType(value: string): value is SuiteType {
   return SUITE_TYPES.some((t) => t.value === value);

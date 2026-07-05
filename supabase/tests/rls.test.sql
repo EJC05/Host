@@ -40,7 +40,7 @@ select set_config('request.jwt.claims',
   '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', false);
 
 select public.create_suite_with_defaults(
-  'Suite A', 'suite-a', 'creator', 'free');
+  'Suite A', 'suite-a', 'creator_influencer', 'free');
 
 do $$
 begin
@@ -71,7 +71,7 @@ $$;
 do $$
 begin
   begin
-    perform public.create_suite_with_defaults('Nope', 'admin', 'creator', 'free');
+    perform public.create_suite_with_defaults('Nope', 'admin', 'custom', 'free');
     raise exception 'FAIL: reserved slug "admin" was accepted';
   exception
     when others then
@@ -84,7 +84,7 @@ $$;
 do $$
 begin
   begin
-    perform public.create_suite_with_defaults('Nope', 'suite-a', 'creator', 'free');
+    perform public.create_suite_with_defaults('Nope', 'suite-a', 'custom', 'free');
     raise exception 'FAIL: duplicate slug "suite-a" was accepted';
   exception
     when others then
@@ -97,7 +97,7 @@ $$;
 do $$
 begin
   begin
-    perform public.create_suite_with_defaults('Nope', 'paid-bad', 'creator', 'paid', 0);
+    perform public.create_suite_with_defaults('Nope', 'paid-bad', 'custom', 'paid', 0);
     raise exception 'FAIL: paid suite with 0 price was accepted';
   exception
     when others then
@@ -125,17 +125,21 @@ end;
 $$;
 
 -- --------------------------------------------------------------------------
--- User B creates Suite B (paid, community template)
+-- User B creates Suite B (paid, real-estate-agent template)
 -- --------------------------------------------------------------------------
 
 select set_config('request.jwt.claims',
   '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', false);
 
 select public.create_suite_with_defaults(
-  'Suite B', 'suite-b', 'community', 'paid', 990);
+  'Suite B', 'suite-b', 'real_estate_agent', 'paid', 990);
 
 do $$
 begin
+  if (select count(*) from public.suite_tabs t
+      join public.suites s on s.id = t.suite_id where s.slug = 'suite-b') <> 5 then
+    raise exception 'FAIL: suite-b tabs were not seeded per template';
+  end if;
   if (select count(*) from public.rooms r
       join public.suites s on s.id = r.suite_id where s.slug = 'suite-b') <> 3 then
     raise exception 'FAIL: suite-b rooms were not seeded';
@@ -362,7 +366,7 @@ $$;
 do $$
 begin
   begin
-    perform public.create_suite_with_defaults('Anon Suite', 'anon-suite', 'creator', 'free');
+    perform public.create_suite_with_defaults('Anon Suite', 'anon-suite', 'custom', 'free');
     raise exception 'FAIL: LEAK — anon created a suite';
   exception
     when insufficient_privilege then null;

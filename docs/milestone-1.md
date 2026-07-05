@@ -1,10 +1,11 @@
 # HouseKey — Milestone 1: Skeleton & Tenancy
 
 > **Note on the PRD:** no PRD document was present in this repository when
-> Milestone 1 was built. The data model and terminology below are derived
-> from the Milestone 1 brief (suites, suite tabs, memberships, plans,
-> rooms, branding, free/paid access, reserved slugs). Anything the PRD
-> specifies differently should be reconciled in a follow-up.
+> Milestone 1 was first built, so the initial data model was derived from
+> the Milestone 1 brief. The PRD has since been added as
+> [`housekey-prd.md`](housekey-prd.md) and the implementation reconciled
+> against it — see
+> [`milestone-1-reconciliation.md`](milestone-1-reconciliation.md).
 
 ## 1. Project setup plan
 
@@ -74,9 +75,10 @@ docs/milestone-1.md           # this document
 
 - `profiles` — 1:1 with `auth.users`, auto-created by trigger on signup.
 - `suites` — the tenant. Owner, unique slug (checked against
-  `reserved_slugs` by trigger), name, `suite_type`
-  (`creator | community | business`), `access` (`free | paid`), branding
-  (`logo_url`, `brand_color`), `published`.
+  `reserved_slugs` by trigger), name, `suite_type` (launch template:
+  `real_estate_agent | creator_influencer | coach_consultant |
+  business_brand | custom` — see PRD §4), `access` (`free | paid`),
+  branding (`logo_url`, `brand_color`), `published`.
 - `suite_tabs` — navigation tabs, `is_public` controls anon visibility.
 - `memberships` — `(suite_id, user_id)` unique, role `owner | member`.
 - `plans` — per-suite pricing (`price_cents`, currency, interval). No
