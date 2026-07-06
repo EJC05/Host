@@ -4,10 +4,33 @@ Environment variables: see [`.env.example`](../.env.example). The three
 in the first block make the app viewable; the Stripe/service-role block
 is only needed for the Milestone 3 money features and can be added later.
 
+Manual QA after deploying: [`functional-inspection.md`](functional-inspection.md).
+
+## 0. Run locally (optional but recommended first)
+
+Requires Node 20+ and pnpm (`npm i -g pnpm`). You still need a hosted
+Supabase project (steps 1–3 below) — the app's login/data won't work
+without one.
+
+```bash
+git clone https://github.com/EJC05/Host.git housekey && cd housekey
+pnpm install
+cp .env.example .env.local
+# open .env.local and fill in the three values from step 3:
+#   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+#   NEXT_PUBLIC_APP_URL=http://localhost:3000
+pnpm dev
+```
+
+Open http://localhost:3000 and test in this order: `/` → `/signup`
+(create an account) → `/new` (create a suite) → you land on
+`/dashboard/<slug>` → `/dashboard/<slug>/content` (write a post) →
+`/s/<slug>` in a private window.
+
 ## 1. Create a Supabase project
 
 1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
-2. Pick an org, name it (e.g. `housekey`), set a strong database
+2. Pick an org, name it `housekey-mvp`, set a strong database
    password, choose a region near your users → **Create**.
 3. Wait ~2 minutes for provisioning.
 
@@ -96,6 +119,27 @@ and redeploy.
    body text.
 6. Sign up as User B in the private window, join Suite A free → the
    free-members post unlocks; `/dashboard/<suite-a-slug>` as B → 404.
+
+## Troubleshooting
+
+**Vercel build fails** — open the failed deployment's build logs.
+The two usual causes: (1) missing env vars — add the three required
+variables in Settings → Environment Variables and hit **Redeploy**;
+(2) a Node version mismatch — set Project Settings → Node.js to 20 or
+22. The repo itself builds clean (`pnpm build` passes in CI-like runs).
+
+**Signup email link goes to localhost / errors** — the Supabase
+**Site URL** and **Redirect URLs** (step 3) don't match your deployed
+domain. Fix them in Supabase → Authentication → URL Configuration; the
+redirect must be exactly `https://<your-domain>/auth/callback`. Links in
+already-sent emails stay broken — sign up again with a fresh address.
+
+**"Invalid API key" or every page 404s data** — the anon key or URL was
+pasted wrong (or swapped). Re-copy both from Project Settings → API and
+redeploy.
+
+**Suite creation fails with a database error** — migrations didn't
+apply. Re-run step 2 and confirm the tables exist in the Table Editor.
 
 ## 8. (Later) Enable payments
 
