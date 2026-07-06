@@ -7,6 +7,64 @@ you can act as Owner and Visitor at the same time.
 
 Status legend: ☐ untested · ✅ pass · ❌ fail (note what happened)
 
+## Scripted first inspection (do this exact flow first)
+
+**Account & suite**
+
+1. ☐ Open the landing page — loads, header shows Log in / Sign up.
+2. ☐ **Sign up** (User A). If asked, confirm via the email link — it
+   must return you to the app logged in.
+3. ☐ You land on `/new`. Create the test suite:
+   - Name: `Smith Realty Insider` (slug auto-fills
+     `smith-realty-insider`; wait for the green "Available")
+   - Type: **Real Estate Agent**
+   - Access: **Free**
+   - Branding: **skip** (or upload a simple image)
+   - Review → **Generate suite**
+4. ☐ You land on `/dashboard/smith-realty-insider`. Confirm on the
+   Overview: **Members = 1** (owner membership), **Tabs list** shows
+   Home, Listings, Rooms (members), About, Contact, and **Rooms list**
+   shows General, Market Updates, Buyer Q&A.
+
+**Public suite**
+
+5. ☐ Open `/s/smith-realty-insider` — header, suite name, cover/logo
+   area, and Home/Feed/About tabs display.
+6. ☐ Open `/s/smith-realty-insider/feed` — loads ("Nothing posted yet").
+7. ☐ Open `/s/smith-realty-insider/about` — loads.
+
+**Posts**
+
+8. ☐ Go to `/dashboard/smith-realty-insider/content` → **New post**:
+   - Title: `July LA Market Update` — Visibility: **Public** —
+     Body: `Quick update on buyer demand, interest rates, and what
+     sellers should know this month.` — check **Published** → save.
+9. ☐ It appears on `/s/smith-realty-insider/feed` and is fully
+   readable.
+10. ☐ Create a second post:
+    - Title: `Members-Only Seller Strategy` — Visibility:
+      **Paid members** — Excerpt: `A private breakdown for sellers
+      preparing to list this summer.` — any body text — **Published**.
+11. ☐ **Log out** (or use a private window). On the feed, the locked
+    post shows a 🔒 teaser card only; opening it shows the locked
+    card, not the body.
+12. ☐ View Source on that page — the locked post's body text appears
+    nowhere in the HTML.
+
+**Security**
+
+13. ☐ In the private window, sign up as **User B**.
+14. ☐ As B, open `/dashboard/smith-realty-insider` → must be a 404.
+15. ☐ Open `/s/this-suite-does-not-exist` → 404.
+
+**Mobile** (DevTools device toolbar or a phone)
+
+16. ☐ Landing page, `/s/smith-realty-insider`, and the dashboard are
+    readable at ~375px with no horizontal scrolling.
+
+If all 16 pass, the creation flow is functional. The full granular
+checklist follows for deeper passes.
+
 ## Account
 
 - ☐ Landing page loads at `/`
