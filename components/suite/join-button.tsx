@@ -93,9 +93,10 @@ export function JoinButton({
           style={{ backgroundColor: primaryColor }}
           onClick={() =>
             startTransition(async () => {
-              // Redirects to Stripe Checkout; only returns on failure.
+              // Redirects to Stripe Checkout on success (resolves undefined);
+              // a returned object means failure.
               const result = await startMemberCheckout(slug);
-              if (!result.ok) setError(result.error);
+              if (result && !result.ok) setError(result.error);
             })
           }
         >

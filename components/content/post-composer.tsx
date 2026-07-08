@@ -101,12 +101,14 @@ export function PostComposer({
         pinned,
       });
 
-      // savePost redirects on success; reaching here means failure.
-      setError(result.error);
-      setSaving(false);
-    } catch (e) {
-      // Next.js redirect() propagates as a thrown control-flow error.
-      if (e && typeof e === "object" && "digest" in e) throw e;
+      // savePost redirects on success — a redirecting server action resolves
+      // the client promise with `undefined`, so a returned object means the
+      // save failed. Leave the spinner up while the redirect navigates.
+      if (result) {
+        setError(result.error);
+        setSaving(false);
+      }
+    } catch {
       setError("Something went wrong. Please try again.");
       setSaving(false);
     }
@@ -117,11 +119,14 @@ export function PostComposer({
     if (!window.confirm("Delete this post? This cannot be undone.")) return;
     setDeleting(true);
     try {
+      // deletePost redirects on success (resolves undefined); an object means
+      // it failed.
       const result = await deletePost(post.id, suite.slug);
-      setError(result.error);
-      setDeleting(false);
-    } catch (e) {
-      if (e && typeof e === "object" && "digest" in e) throw e;
+      if (result) {
+        setError(result.error);
+        setDeleting(false);
+      }
+    } catch {
       setError("Could not delete the post.");
       setDeleting(false);
     }

@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/validation";
 
 function LoginForm() {
   const router = useRouter();
@@ -40,8 +41,7 @@ function LoginForm() {
       return;
     }
 
-    const next = searchParams.get("next");
-    router.push(next && next.startsWith("/") ? next : "/dashboard");
+    router.push(safeNextPath(searchParams.get("next"), "/dashboard"));
     router.refresh();
   }
 

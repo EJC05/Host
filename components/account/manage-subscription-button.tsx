@@ -14,9 +14,10 @@ export function ManageSubscriptionButton() {
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            // Redirects to the Stripe portal; only returns on failure.
+            // Redirects to the Stripe portal on success (resolves undefined);
+            // a returned object means failure.
             const result = await openMemberBillingPortal();
-            if (!result.ok) setError(result.error);
+            if (result && !result.ok) setError(result.error);
           })
         }
       >

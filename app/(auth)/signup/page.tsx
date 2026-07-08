@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/validation";
 
 function SignupForm() {
   const router = useRouter();
@@ -25,8 +26,7 @@ function SignupForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const nextParam = searchParams.get("next");
-  const next = nextParam && nextParam.startsWith("/") ? nextParam : "/new";
+  const next = safeNextPath(searchParams.get("next"), "/new");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

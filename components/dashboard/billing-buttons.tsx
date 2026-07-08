@@ -38,9 +38,10 @@ export function BillingButton({
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            // Each action redirects to Stripe; it only returns on failure.
+            // Each action redirects to Stripe on success, which resolves the
+            // client promise with `undefined`; a returned object means failure.
             const result = await ACTIONS[kind](slug);
-            if (!result.ok) setError(result.error);
+            if (result && !result.ok) setError(result.error);
           })
         }
       >

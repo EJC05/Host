@@ -3,6 +3,25 @@ import type { SuiteAccess, SuiteType } from "@/lib/types";
 // Must stay in sync with the check constraint on suites.slug (0001_init.sql).
 export const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,46}[a-z0-9]$/;
 
+// Sanitizes a `next` redirect param: only same-origin absolute paths are
+// allowed. Rejects protocol-relative ("//evil.com", "/\evil.com") and
+// absolute URLs, which otherwise pass a bare startsWith("/") check and send
+// a freshly-authenticated user off-site.
+export function safeNextPath(
+  next: string | null | undefined,
+  fallback: string
+): string {
+  if (
+    next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.startsWith("/\\")
+  ) {
+    return next;
+  }
+  return fallback;
+}
+
 export const MIN_PRICE_CENTS = 100; // $1.00
 export const MAX_PRICE_CENTS = 100_000_000;
 
